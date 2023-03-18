@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, Link } from "react-router-dom";
 import NoteList from "./NoteList";
+import Login from "./Login";
 import { v4 as uuidv4 } from "uuid";
 import { currentDate } from "./utils";
 
+
+
 const localStorageKey = "lotion-v1";
+
+const getUrl = "";
+const saveUrl = "";
+const delUrl = "";
 
 function Layout() {
   const navigate = useNavigate();
@@ -13,6 +20,51 @@ function Layout() {
   const [notes, setNotes] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [currentNote, setCurrentNote] = useState(-1);
+
+  const [email, setEmail] = useState("none");
+//--------------------------------------------------------------------------------------------------------------------------
+// GOOGLE OATH
+
+
+
+
+//--------------------------------------------------------------------------------------------------------------------------
+//AWS FUNCTIONS
+
+  async function getNote(id){
+    // calls the get function, sends email and id for the keys
+    // returns the notes object (i think)
+
+    const args = {"email" : email, "id":id};
+    const res = await fetch(getUrl,{method : "GET", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
+    
+    return res.body
+  }
+  
+  async function saveNoteAWS(note,id){
+    // deletes note from aws then replaces it, basically an update
+    // arg note is anouther json inside (jsonseption), to be unpacked in lambda
+    // also updates the react state so the ui updates
+    delNoteAWS(email,id);
+    const args = {"email" : email, "id":id, "note": note};
+    const res = await fetch(saveUrl,{method : "POST", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
+    setNotes([
+      ...notes.slice(0, id),
+      { ...note },
+      ...notes.slice(id + 1),
+    ]);
+  }
+
+  async function delNoteAWS(id){
+    // calls aws func to delete the note with the id from the args
+
+    const args = {"email" : email, "id":id};
+    const res = await fetch(delUrl,{method : "GET", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
+  }
+
+
+  //--------------------------------------------------------------------------------------------------------
+  //REACT FUNTIONS
 
   useEffect(() => {
     const height = mainContainerRef.current.offsetHeight;
@@ -42,24 +94,22 @@ function Layout() {
     navigate(`/notes/${currentNote + 1}/edit`);
   }, [notes]);
 
-  const saveNote = (note, index) => {
+  const saveNote = (note, id) => {
     note.body = note.body.replaceAll("<p><br></p>", "");
-    setNotes([
-      ...notes.slice(0, index),
-      { ...note },
-      ...notes.slice(index + 1),
-    ]);
-    setCurrentNote(index);
+    saveNoteAWS(note,id);
+    setCurrentNote(id);
     setEditMode(false);
   };
 
-  const deleteNote = (index) => {
-    setNotes([...notes.slice(0, index), ...notes.slice(index + 1)]);
+  const deleteNote = (id) => {
+    setNotes([...notes.slice(0, id), ...notes.slice(id + 1)]);
+    //DELNOTEAWS
     setCurrentNote(0);
     setEditMode(false);
   };
 
   const addNote = () => {
+    console.log(email);
     setNotes([
       {
         id: uuidv4(),
@@ -73,7 +123,16 @@ function Layout() {
     setCurrentNote(0);
   };
 
-  return (
+
+
+  return  true ? (
+    <>
+    <div id="main-container" ref={mainContainerRef}>
+      <Login/>
+    </div>
+    </>
+    ) : (
+    <>
     <div id="container">
       <header>
         <aside>
@@ -108,6 +167,7 @@ function Layout() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

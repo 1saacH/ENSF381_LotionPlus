@@ -24,7 +24,22 @@ function Layout() {
   const [email, setEmail] = useState("none");
 //--------------------------------------------------------------------------------------------------------------------------
 // GOOGLE OATH
+async function passEmail(email){
+  console.log("email: " + email);
+  setEmail(email);
+  setNotes([]);
 
+  // init the notes array, idk how to know how to get all the notes tho, will need to debug this after aws
+  // const notesArray = [];
+  // const res = getNote(0);
+  // let i = 1;
+  // while(res != null){
+  //   res = getNote(i)
+  //   notesArray.push(res);
+  //   i++;
+  // };
+  // setNotes(notesArray);
+}
 
 
 
@@ -45,7 +60,7 @@ function Layout() {
     // deletes note from aws then replaces it, basically an update
     // arg note is anouther json inside (jsonseption), to be unpacked in lambda
     // also updates the react state so the ui updates
-    delNoteAWS(email,id);
+    delNoteAWS(id);
     const args = {"email" : email, "id":id, "note": note};
     const res = await fetch(saveUrl,{method : "POST", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
     setNotes([
@@ -103,7 +118,7 @@ function Layout() {
 
   const deleteNote = (id) => {
     setNotes([...notes.slice(0, id), ...notes.slice(id + 1)]);
-    //DELNOTEAWS
+    delNoteAWS(id);
     setCurrentNote(0);
     setEditMode(false);
   };
@@ -123,13 +138,35 @@ function Layout() {
     setCurrentNote(0);
   };
 
+  const logout = () => {
+    setEmail("none");
+  }
 
 
-  return  true ? (
+
+
+
+  return ( 
+  <div>
+  {email == "none" ? (
     <>
-    <div id="main-container" ref={mainContainerRef}>
-      <Login/>
-    </div>
+      <header>
+          <aside >
+            <button id="menu-button" onClick={() => {console.log("Good try hacker, lol ")}}>
+              &#9776;
+            </button>
+          </aside>
+          <div id="app-header">
+            <h1>
+              <Link to="/notes">Lotion</Link>
+            </h1>
+            <h6 id="app-moto">Like Notion, but worse.</h6>
+          </div>
+          <aside>&nbsp;</aside>
+        </header>
+      <div id="main-container" className="google" ref={mainContainerRef}>
+        <Login  passEmail = {passEmail}/>
+      </div>
     </>
     ) : (
     <>
@@ -146,7 +183,12 @@ function Layout() {
           </h1>
           <h6 id="app-moto">Like Notion, but worse.</h6>
         </div>
-        <aside>&nbsp;</aside>
+        <aside>
+          <span id = "info">
+            <span>{email}</span>
+            <button onClick = {logout}>(Log out)</button>
+          </span>
+        </aside>
       </header>
       <div id="main-container" ref={mainContainerRef}>
         <aside id="sidebar" className={collapse ? "hidden" : null}>
@@ -168,7 +210,8 @@ function Layout() {
       </div>
     </div>
     </>
-  );
+  )}
+  </div>)
 }
 
 export default Layout;

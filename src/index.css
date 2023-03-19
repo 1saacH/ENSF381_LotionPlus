@@ -231,3 +231,25 @@ input.note-title {
   text-align: center;
   font-size: 1.2em;
 }
+
+.google{
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  padding-top: 200px;
+}
+
+.oath{
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+#info span{
+  font-size: small;
+  display: flex;
+  width: 175px;
+  padding-top: 10px;
+  padding-bottom: 5px;
+  font-weight: bold;
+}

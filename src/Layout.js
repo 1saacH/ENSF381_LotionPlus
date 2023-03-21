@@ -28,6 +28,7 @@ async function passEmail(email){
   console.log("email: " + email);
   setEmail(email);
   setNotes([]);
+  const temp = getNotesAWS();
   //init the notes here
 }
 
@@ -36,12 +37,22 @@ async function passEmail(email){
 //--------------------------------------------------------------------------------------------------------------------------
 //AWS FUNCTIONS
 
-  async function getNotesAWS(id){
+  async function getNotesAWS(){
     // calls the get function, sends email and id for the keys
     // returns the notes object (i think)
-
     const args = {"email" : email};
-    const res = await fetch(getUrl,{method : "GET", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
+    const params = new URLSearchParams();
+    params.append('jsonObject', JSON.stringify({args}));
+
+    const res = fetch(getUrl + params.toString(), {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    
+    // const res = await fetch(getUrl,{method : "GET", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
     const ret = JSON.parse(res);
     console.log("return: " + ret);
     console.log("response: " + res);

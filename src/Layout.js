@@ -28,17 +28,7 @@ async function passEmail(email){
   console.log("email: " + email);
   setEmail(email);
   setNotes([]);
-
-  // init the notes array, idk how to know how to get all the notes tho, will need to debug this after aws
-  // const notesArray = [];
-  // const res = getNote(0);
-  // let i = 1;
-  // while(res != null){
-  //   res = getNote(i)
-  //   notesArray.push(res);
-  //   i++;
-  // };
-  // setNotes(notesArray);
+  //init the notes here
 }
 
 
@@ -46,14 +36,16 @@ async function passEmail(email){
 //--------------------------------------------------------------------------------------------------------------------------
 //AWS FUNCTIONS
 
-  async function getNote(id){
+  async function getNotesAWS(id){
     // calls the get function, sends email and id for the keys
     // returns the notes object (i think)
 
-    const args = {"email" : email, "id":id};
-    const res = await fetch(getUrl,{method : "GET", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
-    
-    return res.body
+    const args = {"email" : email};
+    const res = await fetch(getUrl,{method : "GET", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
+    const ret = JSON.parse(res);
+    console.log("return: " + ret);
+    console.log("response: " + res);
+    return res.body;
   }
   
   async function saveNoteAWS(note,id){
@@ -62,7 +54,7 @@ async function passEmail(email){
     // also updates the react state so the ui updates
     delNoteAWS(id);
     const args = {"email" : email, "id":id, "note": note};
-    const res = await fetch(saveUrl,{method : "POST", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
+    const res = await fetch(saveUrl,{method : "POST", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
     setNotes([
       ...notes.slice(0, id),
       { ...note },
@@ -74,7 +66,7 @@ async function passEmail(email){
     // calls aws func to delete the note with the id from the args
 
     const args = {"email" : email, "id":id};
-    const res = await fetch(delUrl,{method : "GET", headers: {"Conent-Type": "application.json"}, body: JSON.stringify(args)});
+    const res = await fetch(delUrl,{method : "DELETE", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
   }
 
 

@@ -9,9 +9,9 @@ import { currentDate } from "./utils";
 
 const localStorageKey = "lotion-v1";
 
-const getUrl = "";
-const saveUrl = "";
-const delUrl = "";
+const getUrl = "https://2y7lq3ffkvxnaffr3fbm4dajya0hrubw.lambda-url.ca-central-1.on.aws/";
+const saveUrl = "https://2pkfvt7jung6vh7pqiocipgnoq0gqkjl.lambda-url.ca-central-1.on.aws/";
+const delUrl = "https://mpo4kk2ozv3dy4jftw4ug2nxf40glxed.lambda-url.ca-central-1.on.aws/";
 
 function Layout() {
   const navigate = useNavigate();

@@ -28,6 +28,7 @@ async function passEmail(email){
   console.log("email: " + email);
   setEmail(email);
   setNotes([]);
+  const temp = getNotesAWS();
   //init the notes here
 }
 

@@ -10,7 +10,6 @@ function Login({passEmail}) {
     const success = (profile) => {
         if (profile.credential != null) {
             const USER_CREDENTIAL = jwtDecode(profile.credential);
-            console.log(USER_CREDENTIAL.email);
             passEmail(USER_CREDENTIAL.email);
     }};
 

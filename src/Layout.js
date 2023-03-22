@@ -73,7 +73,7 @@ async function passEmail(email){
     // deletes note from aws then replaces it, basically an update
     // arg note is anouther json inside (jsonseption), to be unpacked in lambda
     // also updates the react state so the ui updates
-    delNoteAWS(id);
+    await delNoteAWS(id);
     const args = {"email" : email, "id":id, "note": note};
     console.log(args);
     const res = await fetch(saveUrl,{method : "POST", mode: "cors", headers: {"Content-Type": "application/json"}, body: JSON.stringify(args)});
@@ -118,22 +118,22 @@ async function passEmail(email){
     navigate(`/notes/${currentNote + 1}/edit`);
   }, [notes]);
 
-  const saveNote = (note, id) => {
+  const saveNote = async (note, id) => {
     note.body = note.body.replaceAll("<p><br></p>", "");
     setNotes([
       ...notes.slice(0, id),
       { ...note },
       ...notes.slice(id + 1),
     ]);
-    saveNoteAWS(note,note.id);
+    await saveNoteAWS(note,note.id);
     setCurrentNote(id);
     setEditMode(false);
   };
 
-  const deleteNote = (id) => {
+  const deleteNote = async (id) => {
     const noteToDel = notes[id];
     setNotes([...notes.slice(0, id), ...notes.slice(id + 1)]);
-    delNoteAWS(noteToDel.id);
+    await delNoteAWS(noteToDel.id);
     setCurrentNote(0);
     setEditMode(false);
   };

@@ -9,9 +9,9 @@ import { currentDate } from "./utils";
 
 const localStorageKey = "lotion-v1";
 
-const getUrl = "https://2y7lq3ffkvxnaffr3fbm4dajya0hrubw.lambda-url.ca-central-1.on.aws/";
-const saveUrl = "https://2pkfvt7jung6vh7pqiocipgnoq0gqkjl.lambda-url.ca-central-1.on.aws/";
-const delUrl = "https://mpo4kk2ozv3dy4jftw4ug2nxf40glxed.lambda-url.ca-central-1.on.aws/";
+const getUrl = "https://fbsffz3yvi4pgcpdmzdixemkfq0rzrkv.lambda-url.ca-central-1.on.aws/";
+const saveUrl = "https://2fpoinpcxfmt5ljc7gg5qtwlim0cqiab.lambda-url.ca-central-1.on.aws/";
+const delUrl = "https://ic47wjfxbzrciy5xzwoa5nldou0xxsbm.lambda-url.ca-central-1.on.aws/";
 
 function Layout() {
   const navigate = useNavigate();
@@ -28,7 +28,23 @@ async function passEmail(email){
   console.log("email: " + email);
   setEmail(email);
   setNotes([]);
-  const temp = getNotesAWS();
+  const temp = await getNotesAWS(email);
+  console.log(temp[0]);
+  console.log(typeof temp);
+  console.log("Loop:" + temp.length);
+  localStorage.clear();
+  localStorage.setItem(localStorageKey, null);
+  const gottenNotes = [];
+  for (let i = 0; i < temp.length; i++){
+    console.log("i:" + i);
+    const body = temp[i].content;
+    const id = temp[i].id;
+    const title = temp[i].title;
+    const when = temp[i].date;
+    const note = {body: body, id: id, title: title, when: when};
+    gottenNotes.push(note);
+  }
+  setNotes(gottenNotes);
   //init the notes here
 }
 
@@ -37,45 +53,35 @@ async function passEmail(email){
 //--------------------------------------------------------------------------------------------------------------------------
 //AWS FUNCTIONS
 
-  async function getNotesAWS(){
+  async function getNotesAWS(email){
     // calls the get function, sends email and id for the keys
     // returns the notes object (i think)
     const args = {"email" : email};
-    const params = new URLSearchParams();
-    params.append('jsonObject', JSON.stringify({args}));
-
-    const res = fetch(getUrl + params.toString(), {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    
+    const url = getUrl + "?email=" + email;
+    console.log(url);
+    const res = await fetch(url, {method: 'GET',headers: {'Content-Type': 'application/json'}});
     // const res = await fetch(getUrl,{method : "GET", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
-    const ret = JSON.parse(res);
-    console.log("return: " + ret);
-    console.log("response: " + res);
-    return res.body;
+    // console.log("return: " + ret);
+    const resJson = await res.json();
+
+    return resJson;
   }
   
   async function saveNoteAWS(note,id){
+    // DONE execept for delete before save
+
     // deletes note from aws then replaces it, basically an update
     // arg note is anouther json inside (jsonseption), to be unpacked in lambda
     // also updates the react state so the ui updates
     delNoteAWS(id);
     const args = {"email" : email, "id":id, "note": note};
-    const res = await fetch(saveUrl,{method : "POST", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
-    setNotes([
-      ...notes.slice(0, id),
-      { ...note },
-      ...notes.slice(id + 1),
-    ]);
+    console.log(args);
+    const res = await fetch(saveUrl,{method : "POST", mode: "cors", headers: {"Content-Type": "application/json"}, body: JSON.stringify(args)});
   }
 
   async function delNoteAWS(id){
     // calls aws func to delete the note with the id from the args
-
+    console.log("id in delete call:", id);
     const args = {"email" : email, "id":id};
     const res = await fetch(delUrl,{method : "DELETE", headers: {"Content-Type": "application.json"}, body: JSON.stringify(args)});
   }
@@ -114,14 +120,20 @@ async function passEmail(email){
 
   const saveNote = (note, id) => {
     note.body = note.body.replaceAll("<p><br></p>", "");
-    saveNoteAWS(note,id);
+    setNotes([
+      ...notes.slice(0, id),
+      { ...note },
+      ...notes.slice(id + 1),
+    ]);
+    saveNoteAWS(note,note.id);
     setCurrentNote(id);
     setEditMode(false);
   };
 
   const deleteNote = (id) => {
+    const noteToDel = notes[id];
     setNotes([...notes.slice(0, id), ...notes.slice(id + 1)]);
-    delNoteAWS(id);
+    delNoteAWS(noteToDel.id);
     setCurrentNote(0);
     setEditMode(false);
   };

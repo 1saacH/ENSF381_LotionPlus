@@ -162,7 +162,7 @@ resource "aws_dynamodb_table" "lotion-30139733" {
   }
   attribute {
     name = "id"
-    type = "N"
+    type = "S"
   }
 }
 
@@ -234,6 +234,66 @@ resource "aws_iam_policy" "logs-del" {
 EOF
 }
 
+resource "aws_iam_policy" "dynamodb-get" {
+  name        = "lambda-dynamodb-${local.function_name_get}"
+  description = "IAM policy for dynamodb from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "dynamodb:Query"
+      ],
+      "Resource": "arn:aws:dynamodb:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "dynamodb-save" {
+  name        = "lambda-dynamodb-${local.function_name_save}"
+  description = "IAM policy for dynamodb from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "dynamodb:PutItem"
+      ],
+      "Resource": "arn:aws:dynamodb:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "dynamodb-del" {
+  name        = "lambda-dynamodb-${local.function_name_del}"
+  description = "IAM policy for dynamodb from a lambda"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "dynamodb:DeleteItem"
+      ],
+      "Resource": "arn:aws:dynamodb:*:*:*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
 # attach the above policy to the function role
 # see the docs: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment
 resource "aws_iam_role_policy_attachment" "lambda_logs-get" {
@@ -249,6 +309,21 @@ resource "aws_iam_role_policy_attachment" "lambda_logs-save" {
 resource "aws_iam_role_policy_attachment" "lambda_logs-del" {
   role       = aws_iam_role.lambda-del.name
   policy_arn = aws_iam_policy.logs-del.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_dynamodb-get" {
+  role       = aws_iam_role.lambda-get.name
+  policy_arn = aws_iam_policy.dynamodb-get.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_dynamodb-save" {
+  role       = aws_iam_role.lambda-save.name
+  policy_arn = aws_iam_policy.dynamodb-save.arn
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_dynamodb-del" {
+  role       = aws_iam_role.lambda-del.name
+  policy_arn = aws_iam_policy.dynamodb-del.arn
 }
 
 # create a Function URL for Lambda 
